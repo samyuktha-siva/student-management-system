@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduTrack – Login</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body class="auth-page">
+  <div class="auth-split">
+    <div class="auth-brand">
+      <div class="brand-content">
+        <div class="brand-logo">EDU<span>TRACK</span></div>
+        <h1>Manage students.<br/>Effortlessly.</h1>
+        <p>A powerful student data management system built for modern instructors.</p>
+        <div class="brand-features">
+          <div class="feat"><span class="feat-icon">⚡</span> Bulk CSV Import</div>
+          <div class="feat"><span class="feat-icon">🔍</span> Smart Search</div>
+          <div class="feat"><span class="feat-icon">📊</span> Grade Tracking</div>
+        </div>
+      </div>
+    </div>
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="auth-sub">Sign in to your instructor account</p>
+
+        <div id="loginError" class="alert alert-error hidden"></div>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="you@university.edu" required />
+            <span class="field-error" id="loginEmailErr"></span>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required />
+            <span class="field-error" id="loginPasswordErr"></span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+            <span class="btn-text">Sign In</span>
+            <span class="btn-loader hidden">●●●</span>
+          </button>
+        </form>
+
+        <p class="auth-switch">Don't have an account? <a href="register.html">Register here</a></p>
+      </div>
+    </div>
+  </div>
+  <script src="js/script.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      clearErrors();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      let valid = true;
+      if (!email) { showFieldError('loginEmailErr', 'Email is required'); valid = false; }
+      else if (!isValidEmail(email)) { showFieldError('loginEmailErr', 'Enter a valid email'); valid = false; }
+      if (!password) { showFieldError('loginPasswordErr', 'Password is required'); valid = false; }
+      if (!valid) return;
+      setLoading('loginBtn', true);
+      try {
+        const res = await fetch(API_BASE + '/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token || 'auth');
+          localStorage.setItem('userEmail', email);
+          window.location.href = 'dashboard.html';
+        } else {
+          showAlert('loginError', data.message || 'Invalid credentials');
+        }
+      } catch(err) {
+        showAlert('loginError', 'Cannot connect to server. Is Spring Boot running?');
+      }
+      setLoading('loginBtn', false);
+    });
+  </script>
+</body>
+</html>
